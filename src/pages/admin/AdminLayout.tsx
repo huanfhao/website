@@ -3,77 +3,81 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Package, 
-  ShoppingBag, 
   Users, 
+  ShoppingBag, 
   Settings,
   LogOut 
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export const AdminLayout: React.FC = () => {
   const location = useLocation();
+  const { logout } = useAuth();
   
-  const isActiveLink = (path: string) => {
-    return location.pathname === `/admin${path}` ? 'bg-blue-700' : '';
-  };
+  const menuItems = [
+    { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/admin/products', icon: Package, label: 'Products' },
+    { path: '/admin/users', icon: Users, label: 'Users' },
+    { path: '/admin/orders', icon: ShoppingBag, label: 'Orders' },
+    { path: '/admin/settings', icon: Settings, label: 'Settings' },
+  ];
+
+  const isActivePath = (path: string) => location.pathname === path;
+  const linkClass = (path: string) => `
+    flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-300
+    ${isActivePath(path) 
+      ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-white' 
+      : 'text-gray-600 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-pink-500 hover:via-purple-500 hover:to-blue-500'}
+  `;
 
   return (
-    <div className="min-h-screen flex">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="w-64 bg-blue-800 text-white">
-        <div className="p-4">
-          <h1 className="text-xl font-bold">SY Jewelry Admin</h1>
+      <aside className="w-64 bg-white border-r border-gray-200">
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="p-4 border-b border-gray-200">
+            <Link 
+              to="/" 
+              className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500"
+            >
+              SY Admin
+            </Link>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-1">
+            {menuItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={linkClass(item.path)}
+              >
+                <item.icon className="h-5 w-5" />
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </nav>
+
+          {/* Logout Button */}
+          <div className="p-4 border-t border-gray-200">
+            <button
+              onClick={logout}
+              className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors w-full"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
-        <nav className="mt-8">
-          <Link
-            to="/admin"
-            className={`flex items-center px-6 py-3 text-sm hover:bg-blue-700 ${isActiveLink('')}`}
-          >
-            <LayoutDashboard className="h-5 w-5 mr-3" />
-            Dashboard
-          </Link>
-          <Link
-            to="/admin/products"
-            className={`flex items-center px-6 py-3 text-sm hover:bg-blue-700 ${isActiveLink('/products')}`}
-          >
-            <Package className="h-5 w-5 mr-3" />
-            Products
-          </Link>
-          <Link
-            to="/admin/orders"
-            className={`flex items-center px-6 py-3 text-sm hover:bg-blue-700 ${isActiveLink('/orders')}`}
-          >
-            <ShoppingBag className="h-5 w-5 mr-3" />
-            Orders
-          </Link>
-          <Link
-            to="/admin/customers"
-            className={`flex items-center px-6 py-3 text-sm hover:bg-blue-700 ${isActiveLink('/customers')}`}
-          >
-            <Users className="h-5 w-5 mr-3" />
-            Customers
-          </Link>
-          <Link
-            to="/admin/settings"
-            className={`flex items-center px-6 py-3 text-sm hover:bg-blue-700 ${isActiveLink('/settings')}`}
-          >
-            <Settings className="h-5 w-5 mr-3" />
-            Settings
-          </Link>
-        </nav>
-        <div className="absolute bottom-0 w-64 p-4">
-          <button className="flex items-center px-6 py-3 text-sm hover:bg-blue-700 w-full">
-            <LogOut className="h-5 w-5 mr-3" />
-            Logout
-          </button>
-        </div>
-      </div>
+      </aside>
 
       {/* Main Content */}
-      <div className="flex-1 bg-gray-100">
+      <main className="flex-1 overflow-auto">
         <div className="p-8">
           <Outlet />
         </div>
-      </div>
+      </main>
     </div>
   );
 };

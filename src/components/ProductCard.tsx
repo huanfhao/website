@@ -1,45 +1,66 @@
 import React from 'react';
-import { Product } from '../types';
-import { useCart } from '../context/CartContext';
-import { ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Product } from '../types/product';
+import { motion } from 'framer-motion';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { dispatch } = useCart();
-  
+  const productId = product._id;
+
+  const getImageUrl = (url: string) => {
+    try {
+      const baseUrl = url.split('?')[0];
+      return `${baseUrl}?auto=format&fit=crop&w=800&h=800&q=80`;
+    } catch {
+      return url;
+    }
+  };
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('Image load error:', e);
+    e.currentTarget.src = `https://dummyimage.com/800x800/e0e0e0/ffffff.jpg&text=No+Image`;
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <Link to={`/product/${product.id}`}>
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-48 object-cover hover:opacity-90 transition-opacity"
-        />
-      </Link>
-      <div className="p-4">
-        <Link to={`/product/${product.id}`}>
-          <h3 className="text-lg font-semibold text-gray-800 hover:text-blue-600 transition-colors">
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col"
+    >
+      <Link 
+        to={`/product/${productId}`} 
+        className="flex flex-col h-full"
+      >
+        <div className="aspect-square w-full relative">
+          <LazyLoadImage
+            src={getImageUrl(product.image)}
+            alt={product.name}
+            effect="blur"
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={handleImageError}
+          />
+        </div>
+        <div className="p-4 flex flex-col flex-grow">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
             {product.name}
           </h3>
-        </Link>
-        <p className="mt-1 text-gray-500 text-sm">{product.description}</p>
-        <div className="mt-4 flex items-center justify-between">
-          <span className="text-xl font-bold text-gray-900">
-            ${product.price.toFixed(2)}
-          </span>
-          <button
-            onClick={() => dispatch({ type: 'ADD_ITEM', payload: product })}
-            className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            Add to Cart
-          </button>
+          <p className="text-gray-500 text-sm flex-grow line-clamp-3">
+            {product.description}
+          </p>
+          <div className="flex justify-between items-center mt-4">
+            <span className="text-blue-600 font-bold">
+              ¥{product.price.toFixed(2)}
+            </span>
+            <span className="text-sm text-gray-500 px-2 py-1 bg-gray-100 rounded">
+              {product.category}
+            </span>
+          </div>
         </div>
-      </div>
-    </div>
+      </Link>
+    </motion.div>
   );
 };
